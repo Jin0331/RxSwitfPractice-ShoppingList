@@ -85,6 +85,21 @@ class ShoppingViewController: UIViewController {
             }
             .disposed(by: viewModel.disposeBag)
         
+        // 실시간 검색
+        textField
+            .rx
+            .text
+            .orEmpty
+            .debounce(.seconds(1), scheduler: MainScheduler.instance)
+            .distinctUntilChanged()
+            .subscribe(with: self) { owner, value in
+                print("실시간 검색 : ", value)
+                
+                let result = value.isEmpty ? owner.viewModel.ShoppingList : owner.viewModel.ShoppingList.filter { $0.title.contains(value)}
+                owner.viewModel.items.onNext(result)
+            }
+            .disposed(by: viewModel.disposeBag)
+        
     }
     
     
