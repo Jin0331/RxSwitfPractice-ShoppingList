@@ -46,6 +46,7 @@ class ShoppingViewController: UIViewController {
         
     }
     
+    // 이것이 MVVM은 아닌 것 같다 ㅎㅎ;;;;
     private func bindData() {
         
         // 즐겨찾기 및 완료 기능
@@ -76,6 +77,20 @@ class ShoppingViewController: UIViewController {
             }
             .disposed(by: viewModel.disposeBag)
         
+        // 추가
+        // 중복체크 해야되는데.. 일단 최소 기능만
+        textAddButton
+            .rx
+            .tap
+            .withLatestFrom(textField.rx.text.orEmpty)
+            .bind(with: self) { owner, value in
+                print("입력된 값 ", value)
+                owner.viewModel.ShoppingList.append(ShoppingListModel(isDone: false, title: value, isFavorite: false))
+                owner.viewModel.items.onNext(owner.viewModel.ShoppingList)
+                
+            }
+            .disposed(by: viewModel.disposeBag)
+                
         // 화면전환
         tableView
             .rx
