@@ -67,6 +67,13 @@ final class ShoppingTableViewCell: UITableViewCell {
     
     func updateUI(data : ShoppingListModel) {
         titleLabel.text = data.title
+        
+        let buttonImage = data.isDone ? UIImage(systemName: "checkmark.square.fill") : UIImage(systemName: "checkmark.square")
+        doneButton.setImage(buttonImage, for: .normal)
+        
+        let favoriteImage = data.isFavorite ? UIImage(systemName: "star.fill") : UIImage(systemName: "star")
+        favoriteButton.setImage(favoriteImage, for: .normal)
+        
     }
     
     override func prepareForReuse() {

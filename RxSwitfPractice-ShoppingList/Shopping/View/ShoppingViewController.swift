@@ -51,6 +51,26 @@ class ShoppingViewController: UIViewController {
         viewModel.items
             .bind(to: tableView.rx.items(cellIdentifier: ShoppingTableViewCell.identifier, cellType: ShoppingTableViewCell.self)) { row, element, cell in
                 
+                cell.doneButton
+                    .rx
+                    .tap
+                    .subscribe(with: self) { owner, _ in
+                        print("isDone Button 눌림 🔆 ", row)
+                        owner.viewModel.ShoppingList[row].isDone.toggle()
+                        owner.viewModel.items.onNext(owner.viewModel.ShoppingList)
+                    }
+                    .disposed(by: cell.disposeBag)
+                
+                cell.favoriteButton
+                    .rx
+                    .tap
+                    .subscribe(with: self) { owner, _ in
+                        print("isFavorite Button 눌림 🔆 ", row)
+                        owner.viewModel.ShoppingList[row].isFavorite.toggle()
+                        owner.viewModel.items.onNext(owner.viewModel.ShoppingList)
+                    }
+                    .disposed(by: cell.disposeBag)
+                
                 cell.updateUI(data: element)
             }
             .disposed(by: viewModel.disposeBag)
