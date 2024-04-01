@@ -48,6 +48,7 @@ class ShoppingViewController: UIViewController {
     
     private func bindData() {
         
+        // 즐겨찾기 및 완료 기능
         viewModel.items
             .bind(to: tableView.rx.items(cellIdentifier: ShoppingTableViewCell.identifier, cellType: ShoppingTableViewCell.self)) { row, element, cell in
                 
@@ -72,6 +73,15 @@ class ShoppingViewController: UIViewController {
                     .disposed(by: cell.disposeBag)
                 
                 cell.updateUI(data: element)
+            }
+            .disposed(by: viewModel.disposeBag)
+        
+        // 화면전환
+        tableView
+            .rx
+            .itemSelected
+            .bind(with : self){ owner,  _ in
+                owner.navigationController?.pushViewController(ViewController(), animated: true)
             }
             .disposed(by: viewModel.disposeBag)
         
