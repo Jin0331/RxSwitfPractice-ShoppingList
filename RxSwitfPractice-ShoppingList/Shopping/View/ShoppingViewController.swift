@@ -48,6 +48,7 @@ class ShoppingViewController: UIViewController {
     
     // 이것이 MVVM은 아닌 것 같다 ㅎㅎ;;;;
     // RxSwift + MVVM은 공부하고 적용해야할 듯
+    // https://velog.io/@jeon0976/iOS-%ED%81%B4%EB%A1%9C%EC%A0%80-%EA%B8%B0%EB%B0%98-%EC%BD%94%EB%93%9C%EB%A5%BC-RxSwift-MVVM-%EC%95%84%ED%82%A4%ED%85%8D%EC%B2%98%EB%A1%9C-%EC%97%85%EA%B7%B8%EB%A0%88%EC%9D%B4%EB%93%9C%ED%95%98%EA%B8%B0  <- 이제 알았다... 내일부터
     private func bindData() {
         
         // 즐겨찾기 및 완료 기능
