@@ -34,10 +34,11 @@ class ShoppingViewController: UIViewController {
     }
     
     private let viewModel = ShoppingViewModel()
+    private let disposeBag = DisposeBag()
     
     override func viewDidLoad() {
         super.viewDidLoad()
-                
+        
         configureLayout()
         configureView()
         configureNavigation()
@@ -46,76 +47,52 @@ class ShoppingViewController: UIViewController {
         
     }
     
-    // 이것이 MVVM은 아닌 것 같다 ㅎㅎ;;;;
-    // RxSwift + MVVM은 공부하고 적용해야할 듯
-    // https://velog.io/@jeon0976/iOS-%ED%81%B4%EB%A1%9C%EC%A0%80-%EA%B8%B0%EB%B0%98-%EC%BD%94%EB%93%9C%EB%A5%BC-RxSwift-MVVM-%EC%95%84%ED%82%A4%ED%85%8D%EC%B2%98%EB%A1%9C-%EC%97%85%EA%B7%B8%EB%A0%88%EC%9D%B4%EB%93%9C%ED%95%98%EA%B8%B0  <- 이제 알았다... 내일부터
     private func bindData() {
         
-        // 즐겨찾기 및 완료 기능
-        viewModel.items
-            .bind(to: tableView.rx.items(cellIdentifier: ShoppingTableViewCell.identifier, cellType: ShoppingTableViewCell.self)) { row, element, cell in
-                
-                cell.doneButton
-                    .rx
-                    .tap
-                    .subscribe(with: self) { owner, _ in
-                        print("isDone Button 눌림 🔆 ", row)
-                        owner.viewModel.ShoppingList[row].isDone.toggle()
-                        owner.viewModel.items.onNext(owner.viewModel.ShoppingList)
-                    }
-                    .disposed(by: cell.disposeBag)
-                
-                cell.favoriteButton
-                    .rx
-                    .tap
-                    .subscribe(with: self) { owner, _ in
-                        print("isFavorite Button 눌림 🔆 ", row)
-                        owner.viewModel.ShoppingList[row].isFavorite.toggle()
-                        owner.viewModel.items.onNext(owner.viewModel.ShoppingList)
-                    }
-                    .disposed(by: cell.disposeBag)
-                
-                cell.updateUI(data: element)
-            }
-            .disposed(by: viewModel.disposeBag)
-        
-        // 추가
-        // 중복체크 해야되는데.. 일단 최소 기능만
-        textAddButton
-            .rx
-            .tap
-            .withLatestFrom(textField.rx.text.orEmpty)
-            .bind(with: self) { owner, value in
-                print("입력된 값 ", value)
-                owner.viewModel.ShoppingList.append(ShoppingListModel(isDone: false, title: value, isFavorite: false))
-                owner.viewModel.items.onNext(owner.viewModel.ShoppingList)
-                
-            }
-            .disposed(by: viewModel.disposeBag)
-                
-        // 화면전환
-        tableView
-            .rx
-            .itemSelected
+        // input
+        /// 화면전환
+        tableView.rx.itemSelected
             .bind(with : self){ owner,  _ in
                 owner.navigationController?.pushViewController(ViewController(), animated: true)
             }
             .disposed(by: viewModel.disposeBag)
         
-        // 실시간 검색
-        textField
-            .rx
-            .text
+        /// text Add
+        textAddButton.rx.tap
+            .withLatestFrom(textField.rx.text.orEmpty)
+            .bind(to: viewModel.input.inputTextAdd)
+            .disposed(by: disposeBag)
+        
+
+        /// 실시간 검색
+        textField.rx.text
             .orEmpty
             .debounce(.seconds(1), scheduler: MainScheduler.instance)
             .distinctUntilChanged()
-            .subscribe(with: self) { owner, value in
-                print("실시간 검색 : ", value)
-                
-                let result = value.isEmpty ? owner.viewModel.ShoppingList : owner.viewModel.ShoppingList.filter { $0.title.contains(value)}
-                owner.viewModel.items.onNext(result)
-            }
+            .bind(to: viewModel.input.inputSearchText)
             .disposed(by: viewModel.disposeBag)
+        
+        
+        // output
+        viewModel.output
+            .outputItems
+            .bind(to: tableView.rx.items(cellIdentifier: ShoppingTableViewCell.identifier, cellType: ShoppingTableViewCell.self)) { row, element, cell in
+                
+                cell.doneButton.rx.tap
+                    .bind(with: self) { owner, _ in
+                        owner.viewModel.input.inputDoneButtonTap.accept(row)}
+                    .disposed(by: cell.disposeBag)
+                
+                cell.favoriteButton.rx.tap
+                    .bind(with: self) { owner, _ in
+                        owner.viewModel.input.inputFavoriteButtonTap.accept(row)}
+                    .disposed(by: cell.disposeBag)
+            
+                cell.updateUI(data: element)
+            }
+            .disposed(by: disposeBag)
+
+
         
     }
     
@@ -150,7 +127,7 @@ class ShoppingViewController: UIViewController {
         // 배경색
         navigationController?.navigationBar.scrollEdgeAppearance?.backgroundColor = .black
         navigationController?.navigationBar.barTintColor = UIColor.black
-
+        
         navigationItem.title = "쇼핑"
     }
 }

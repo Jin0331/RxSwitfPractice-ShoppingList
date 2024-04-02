@@ -8,6 +8,7 @@
 import Foundation
 
 struct ShoppingListModel {
+    var _id : String
     var isDone : Bool
     var title : String
     var isFavorite : Bool
