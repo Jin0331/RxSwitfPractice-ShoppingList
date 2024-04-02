@@ -28,9 +28,10 @@ class ShoppingViewController: UIViewController {
         $0.clipsToBounds = true
     }
     
-    private let tableView = UITableView(frame: .zero, style: .grouped).then {
+    private lazy var tableView = UITableView(frame: .zero, style: .grouped).then {
         $0.register(ShoppingTableViewCell.self, forCellReuseIdentifier: ShoppingTableViewCell.identifier)
         $0.backgroundColor = .systemGray6
+        $0.delegate = self
     }
     
     private let viewModel = ShoppingViewModel()
@@ -55,7 +56,7 @@ class ShoppingViewController: UIViewController {
             .bind(with : self){ owner,  _ in
                 owner.navigationController?.pushViewController(ViewController(), animated: true)
             }
-            .disposed(by: viewModel.disposeBag)
+            .disposed(by: disposeBag)
         
         /// text Add
         textAddButton.rx.tap
@@ -70,7 +71,7 @@ class ShoppingViewController: UIViewController {
             .debounce(.seconds(1), scheduler: MainScheduler.instance)
             .distinctUntilChanged()
             .bind(to: viewModel.input.inputSearchText)
-            .disposed(by: viewModel.disposeBag)
+            .disposed(by: disposeBag)
         
         
         // output
@@ -129,5 +130,29 @@ class ShoppingViewController: UIViewController {
         navigationController?.navigationBar.barTintColor = UIColor.black
         
         navigationItem.title = "쇼핑"
+    }
+}
+
+extension ShoppingViewController : UITableViewDelegate {
+    func tableView(_ tableView: UITableView, trailingSwipeActionsConfigurationForRowAt indexPath: IndexPath) -> UISwipeActionsConfiguration? {
+        
+        let delete = UIContextualAction(style: .normal, title: nil) { [weak self] (action, view, completion) in
+            
+            print("????")
+            
+            guard let self = self else { print("???");return }
+
+            tableView.rx.itemDeleted
+                .bind(to: viewModel.input.inputDeleteRow)
+                .disposed(by: disposeBag)
+            completion(true)
+        }
+        
+        delete.backgroundColor = .red
+        delete.title = "삭제"
+        
+        let configuration = UISwipeActionsConfiguration(actions: [delete])
+        configuration.performsFirstActionWithFullSwipe = false
+        return configuration
     }
 }

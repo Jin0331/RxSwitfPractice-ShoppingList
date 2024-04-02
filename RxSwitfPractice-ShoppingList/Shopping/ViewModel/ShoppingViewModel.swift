@@ -24,11 +24,12 @@ final class ShoppingViewModel {
             ShoppingListModel(_id : UUID().uuidString, isDone: false, title: "양말", isFavorite: false)
         ]
         
-        lazy var inputItems = BehaviorRelay(value: ShoppingList)
+        lazy var inputItems = BehaviorSubject(value: ShoppingList)
         let inputDoneButtonTap = PublishRelay<Int>()
         let inputFavoriteButtonTap = PublishRelay<Int>()
         let inputTextAdd = PublishSubject<String>()
         let inputSearchText = PublishSubject<String>()
+        let inputDeleteRow = PublishSubject<IndexPath>()
     }
     
     struct Output {
@@ -77,6 +78,15 @@ final class ShoppingViewModel {
                     
                 let searchResult = value.isEmpty ? owner.input.ShoppingList : owner.input.ShoppingList.filter { $0.title.contains(value)}
                 owner.output.outputItems.accept(searchResult)
+            }
+            .disposed(by: disposeBag)
+        
+        input.inputDeleteRow
+            .bind(with: self) { owner, value in
+                    
+                print(value)
+                
+                owner.output.outputItems.accept(owner.input.ShoppingList)
             }
             .disposed(by: disposeBag)
     }
