@@ -141,10 +141,9 @@ extension ShoppingViewController : UITableViewDelegate {
             print("????")
             
             guard let self = self else { print("???");return }
-
-            tableView.rx.itemDeleted
-                .bind(to: viewModel.input.inputDeleteRow)
-                .disposed(by: disposeBag)
+            guard let temp = tableView.cellForRow(at: indexPath) as? ShoppingTableViewCell else { return }
+            
+            viewModel.input.inputDeleteRow.onNext(temp.titleLabel.text)
             completion(true)
         }
         

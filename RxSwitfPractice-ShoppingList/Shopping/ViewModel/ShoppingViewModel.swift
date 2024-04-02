@@ -29,7 +29,7 @@ final class ShoppingViewModel {
         let inputFavoriteButtonTap = PublishRelay<Int>()
         let inputTextAdd = PublishSubject<String>()
         let inputSearchText = PublishSubject<String>()
-        let inputDeleteRow = PublishSubject<IndexPath>()
+        let inputDeleteRow = PublishSubject<String?>()
     }
     
     struct Output {
@@ -67,9 +67,13 @@ final class ShoppingViewModel {
         input.inputTextAdd
             .bind(with:self) { owner, value in
                 
-                let newItem =  ShoppingListModel(_id : UUID().uuidString, isDone: false, title: value, isFavorite: false)
-                owner.input.ShoppingList.append(newItem)
-                owner.output.outputItems.accept(owner.input.ShoppingList)
+                if !value.isEmpty && !owner.input.ShoppingList.contains(where: { $0.title == value }) {
+                    let newItem =  ShoppingListModel(_id : UUID().uuidString, isDone: false, title: value, isFavorite: false)
+                    owner.input.ShoppingList.append(newItem)
+                    owner.output.outputItems.accept(owner.input.ShoppingList)
+                }
+                
+
             }
             .disposed(by: disposeBag)
         
@@ -81,12 +85,16 @@ final class ShoppingViewModel {
             }
             .disposed(by: disposeBag)
         
+        // 중복이 없다는 가정하에
         input.inputDeleteRow
             .bind(with: self) { owner, value in
-                    
-                print(value)
+                guard let value = value else { return }
+                owner.input.ShoppingList.removeAll { item in
+                    item.title == value
+                }
                 
                 owner.output.outputItems.accept(owner.input.ShoppingList)
+                
             }
             .disposed(by: disposeBag)
     }
