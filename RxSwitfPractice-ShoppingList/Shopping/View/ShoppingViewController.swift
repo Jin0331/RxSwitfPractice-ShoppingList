@@ -145,6 +145,12 @@ extension ShoppingViewController : UITableViewDelegate {
             
             viewModel.input.inputDeleteRow.onNext(temp.titleLabel.text)
             completion(true)
+            
+            
+            // swipe할 때마다, 새롭게 bind되어서 그런건가??
+//            tableView.rx.itemDeleted
+//                .bind(to: viewModel.input.inputDeleteRow)
+//                .disposed(by: disposeBag)
         }
         
         delete.backgroundColor = .red
